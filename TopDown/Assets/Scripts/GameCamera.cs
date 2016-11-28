@@ -14,6 +14,11 @@ public class GameCamera : MonoBehaviour {
     public float zMin = 0;
 
     private Vector3 desiredPosition;
+
+    public Texture2D selectionHighlight = null;
+    public static Rect selection = new Rect(0, 0, 0, 0);
+    private Vector3 startClick = -Vector3.one;
+
 	// Use this for initialization
 	void Start ()
     {
@@ -21,7 +26,10 @@ public class GameCamera : MonoBehaviour {
 	}   
 	
 	// Update is called once per frame
-	void Update () {
+	/// <summary>
+    /// 
+    /// </summary>
+    void Update () {
         float x = 0, y = 0, z = 0;
         float speed = scrollZone * Time.deltaTime;
 
@@ -45,8 +53,46 @@ public class GameCamera : MonoBehaviour {
         desiredPosition = move;
 
         transform.position = Vector3.Lerp(transform.position, desiredPosition, 0.2f);
+        CheckCamera();
     }
     void LateUpdate() {
   
+    }
+
+    private void CheckCamera() {
+        if (Input.GetMouseButtonDown(0))
+            startClick = Input.mousePosition;
+        else if (Input.GetMouseButtonUp(0))
+        {
+            if (selection.width < 0)
+            {
+                selection.x += selection.width;
+                selection.width = -selection.height;
+            }
+            if (selection.height < 0)
+            {
+                selection.y += selection.height;
+                selection.height = -selection.height;
+            }
+            startClick = -Vector3.one;
+        }
+
+        if (Input.GetMouseButton(0))
+            selection = new Rect(startClick.x, InvertMouseY(startClick.y), Input.mousePosition.x - startClick.x,
+                InvertMouseY(Input.mousePosition.y) - InvertMouseY(startClick.y));
+    }
+
+    private void OnGUI()
+    {
+        if (startClick != -Vector3.one)
+        {
+            GUI.color = new Color(1, 1, 1, 0.5f);
+            GUI.DrawTexture(selection, selectionHighlight);
+        }
+    }
+
+    public static float InvertMouseY(float y)
+    {
+        return Screen.height - y;
     }
 }
